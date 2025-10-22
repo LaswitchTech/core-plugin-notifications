@@ -72,36 +72,16 @@ builder.add('widgets','widgetNotifications', class extends builder.ComponentClas
 
         // Create a footer
         this._component.menu.footer = $(document.createElement('div')).attr({
-            'class': 'footer px-3 py-2 border-top d-flex gap-2 align-items-center',
+            'class': 'footer px-3 py-2 border-top d-flex align-items-center justify-content-center',
         }).appendTo(this._component.menu);
-        this._component.menu.footer.switch = $(document.createElement('div')).attr({
-            'class': 'form-check form-switch mb-0',
-        }).appendTo(this._component.menu.footer);
-        this._component.menu.footer.switch.input = $(document.createElement('input')).attr({
-            'class': 'form-check-input',
-            'type': 'checkbox',
-            'id': 'toggleHideLow'+this._id,
-        }).appendTo(this._component.menu.footer.switch).on('change', function(){
-            self._priority = this.checked ? self._properties.priority : -1;
-            localStorage.setItem(
-                'notificationsMenuHideLowPriority',
-                this.checked ? '1' : '0'
-            );
-            self.count();
+        this._component.menu.footer.link = $(document.createElement('button')).attr({
+            'type': 'button',
+            'class': 'btn btn-link btn-sm link-primary text-decoration-none',
+        }).html('<i class="bi bi-trash me-2"></i>'+self._builder.Locale.get('Dismiss all')).appendTo(this._component.menu.footer).click(function(){
+            for(const [key, notification] of Object.entries(self._notifications)){
+                self.dismiss(notification);
+            }
         });
-        if(localStorage.getItem('notificationsMenuHideLowPriority') === '1'){
-            this._component.menu.footer.switch.input.prop('checked', true);
-            this._priority = this._properties.priority;
-        }
-        this._component.menu.footer.switch.label = $(document.createElement('label')).attr({
-            'for': 'toggleHideLow'+this._id,
-            'class': 'form-check-label small',
-        }).appendTo(this._component.menu.footer.switch);
-        this._component.menu.footer.switch.label.text(self._builder.Locale.get('Hide low priority'));
-        this._component.menu.footer.link = $(document.createElement('a')).attr({
-            'href': '/plugin/notifications',
-            'class': 'btn btn-link btn-sm link-primary text-decoration-none ms-auto',
-        }).html('<i class="bi bi-list-ul me-2"></i>'+self._builder.Locale.get('View all')).appendTo(this._component.menu.footer);
 
         // Check if autoStart is enabled
         if(self._properties.autoStart){
@@ -130,7 +110,7 @@ builder.add('widgets','widgetNotifications', class extends builder.ComponentClas
         API.endpoint('/notifications/fetchAll').data({
             conditions: [
                 {key: 'assignedTo', operator: '=', value: USER_ID},
-                {key: 'isDissmissed', operator: '<>', value: 1},
+                {key: 'isDismissed', operator: '<>', value: 1},
             ],
         }).execute(function(response){
             for(const [key, record] of Object.entries(response.records)){
@@ -220,9 +200,16 @@ builder.add('widgets','widgetNotifications', class extends builder.ComponentClas
         this._component.menu.list.empty();
 
         // Append the sorted notifications to the list
-        notifications.forEach(notification => {
-            notification.appendTo(self._component.menu.list).off('click').click(function(){
-                self._builder.Widget('notification',{data: notification.data.id}).view();
+        notifications.forEach(element => {
+            const notification = this._notifications[element.attr('data-notification-id')];
+            notification.appendTo(self._component.menu.list).off().hover(function(){
+                notification._hoverTimeout = setTimeout(function(){
+                    self.dismiss(notification);
+                }, 2000);
+            }, function(){
+                clearTimeout(notification._hoverTimeout);
+            }).click(function(){
+                window.open(notification.data.link);
             });
         });
 
@@ -388,5 +375,12 @@ builder.add('widgets','widgetNotifications', class extends builder.ComponentClas
             initials += words[i].charAt(0).toUpperCase();
         }
         return initials;
+    }
+
+    dismiss(notification){
+        const self = this;
+        API.endpoint('/notifications/dismiss').data({notificationId: notification.data.id}).execute(function(response){
+            self.delete(notification.data.id);
+        });
     }
 });

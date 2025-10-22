@@ -19,11 +19,16 @@ class NotificationsEndpoint extends BaseEndpoint {
         // Set Properties
         $this->required = ['assignedTo','title','content'];
 
+        // Set Access
+        $this->Public = false;
+
         // Set Properties
         switch($this->Request->getNamespace()){
             case "/notifications/notify":
-                $this->Public = false;
                 $this->Level = 2;
+                break;
+            case "/notifications/dismiss":
+                $this->Level = 3;
                 break;
         }
     }
@@ -66,6 +71,43 @@ class NotificationsEndpoint extends BaseEndpoint {
                     $message['data'] = "The user has been notified successfully.";
                 } else {
                     $message = ["status" => 500, "message" => "Internal Server Error", "data" => "An error occurred while creating the notification."];
+                }
+            } else {
+                $message = ["status" => 405, "message" => "Method Not Allowed", "data" => "The method is not allowed for the requested URL."];
+            }
+        }
+
+        // Return the message
+        return $message;
+    }
+
+    /**
+     * Dismiss a Notification
+     */
+    public function dismissAction(): array
+    {
+        // Set the default message
+        $message = ["status" => 200, "message" => "OK", "data" => []];
+
+        // Retrieve the notification's id
+        $notificationId = $this->Request->getParams('REQUEST','notificationId');
+
+        // Check if the parameter exists
+        if(empty($notificationId) || is_null($notificationId) || (int)$notificationId <= 0){
+            $message = ["status" => 400, "message" => "Bad Request", "data" => "The 'notificationId' parameter is required."];
+        }
+
+        // Check if we can proceed
+        if($message['status'] == 200){
+
+            // Check the request method
+            if($this->Request->getMethod() == "POST"){
+
+                // Dismiss the notification
+                if($this->Model->{$this->name}->update((int)$notificationId,['isDismissed' => 1]) > 0){
+                    $message['data'] = "The notification has been dismissed successfully.";
+                } else {
+                    $message = ["status" => 500, "message" => "Internal Server Error", "data" => "An error occurred while dismissing the notification."];
                 }
             } else {
                 $message = ["status" => 405, "message" => "Method Not Allowed", "data" => "The method is not allowed for the requested URL."];
