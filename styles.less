@@ -1,0 +1,85 @@
+.notifications-menu {
+    > button {
+        i {
+            height: 2.25rem;
+            width: 1.5rem
+        }
+        span {
+            padding:8px;
+            display: none;
+        }
+    }
+    >.dropdown-menu {
+        min-width:400px !important;
+        max-width:500px !important;
+
+        .header {
+            .badge {
+                display: none;
+            }
+        }
+
+        .notifications-list {
+            max-height:500px;
+            overflow:auto;
+            background-color: var(--bs-body-bg);
+
+            .notification-row {
+                transition: 0.3s ease;
+                cursor: pointer;
+                border-top: var(--bs-border-width) solid var(--bs-border-color);
+
+                .notification-title {
+                    line-height:1.2;
+                    overflow:hidden;
+                    display:-webkit-box;
+                    -webkit-line-clamp:1;
+                    -webkit-box-orient:vertical;
+                }
+
+                .meta {
+                    font-size:.7rem;
+                    text-wrap: nowrap;
+                    position: absolute;
+                    top: 0px;
+                    right: 0px;
+
+                    .created {
+                        padding:.125rem .4rem;
+                        border-radius:999px;
+                        background-color: var(--bs-tertiary-bg);
+                        text-wrap: nowrap;
+                    }
+
+                    .category {
+                        padding:.125rem .4rem;
+                        border-radius:999px;
+                        background-color: var(--bs-primary);
+                        text-wrap: nowrap;
+                        color: var(--bs-light);
+                    }
+                }
+
+                &:hover {
+                    background-color: var(--bs-light);
+                    box-shadow: 0 .5rem 1rem rgba(0,0,0,.15);
+                    transform: translateX(-4px);
+                }
+            }
+        }
+    }
+    &:has(.notification-row) {
+        > button {
+            span {
+                display: inline-block;
+            }
+        }
+        >.dropdown-menu {
+            .header {
+                .badge {
+                    display: inline-block;
+                }
+            }
+        }
+    }
+}
