@@ -28,6 +28,9 @@
                 transition: 0.3s ease;
                 cursor: pointer;
                 border-top: var(--bs-border-width) solid var(--bs-border-color);
+                position: relative;
+                background-color: transparent;
+                overflow: hidden;
 
                 .notification-title {
                     line-height:1.2;
@@ -60,10 +63,34 @@
                     }
                 }
 
+                > * { position: relative; z-index: 1; }
+
+                &::after {
+                    content: "";
+                    position: absolute;
+                    inset: 0;
+                    left: auto;
+                    right: 0;
+                    width: 0%;
+                    background-color: var(--bs-body-bg);
+                    z-index: 0;
+                    transition:
+                        width 2s ease,
+                        background-color 2s ease;
+                }
+
                 &:hover {
-                    background-color: var(--bs-light);
                     box-shadow: 0 .5rem 1rem rgba(0,0,0,.15);
                     transform: translateX(-4px);
+
+                    &::after {
+                        width: 100%;
+                        background-color: var(--bs-primary);
+                    }
+                }
+
+                &.list-group-item {
+                    background-color: transparent !important;
                 }
             }
         }
